@@ -1,0 +1,76 @@
+<div class="expense-list-container">
+  <h3>All Expenses</h3>
+
+  <!-- Filters -->
+  <div class="filters">
+    <div class="filter-group">
+      <label for="search">Search:</label>
+      <input
+        type="text"
+        id="search"
+        [(ngModel)]="searchTerm"
+        (input)="onSearchChange()"
+        placeholder="Search by description or category"
+        class="search-input">
+    </div>
+
+    <div class="filter-group">
+      <label for="category">Category:</label>
+      <select
+        id="category"
+        [(ngModel)]="selectedCategory"
+        (change)="onCategoryChange()"
+        class="category-select">
+        <option value="">All Categories</option>
+        @for (category of categories; track category) {
+          <option [value]="category">{{ category }}</option>
+        }
+      </select>
+    </div>
+  </div>
+
+  <!-- Summary -->
+  <div class="summary">
+    <p>Showing {{ filteredExpenses.length }} of {{ expenses.length }} expenses</p>
+    <p>Total: ${{ getTotalAmount().toFixed(2) }}</p>
+  </div>
+
+  <!-- Expense Table -->
+  @if (filteredExpenses.length > 0) {
+    <div class="table-container">
+      <table class="expense-table">
+        <thead>
+          <tr>
+            <th>Date</th>
+            <th>Description</th>
+            <th>Category</th>
+            <th>Amount</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (expense of filteredExpenses; track expense.id) {
+            <tr>
+              <td>{{ expense.date }}</td>
+              <td>{{ expense.description }}</td>
+              <td>{{ expense.category }}</td>
+              <td>${{ expense.amount.toFixed(2) }}</td>
+              <td>
+                <button
+                  (click)="deleteExpense(expense.id)"
+                  class="delete-btn"
+                  title="Delete expense">
+                  Delete
+                </button>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  } @else {
+    <div class="no-expenses">
+      <p>No expenses found matching your criteria.</p>
+    </div>
+  }
+</div>

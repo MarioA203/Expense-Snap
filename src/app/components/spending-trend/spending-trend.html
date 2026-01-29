@@ -1,0 +1,16 @@
+<div class="trend-container">
+  <h3>Spending Trend Analysis</h3>
+  <div #trendChart class="trend-chart"></div>
+  @if (predictions.length > 0) {
+    <div class="prediction-info">
+      <h4>5-Day Spending Prediction</h4>
+      <ul>
+        @for (prediction of predictions; track $index) {
+          <li>
+            Day {{ expensesOverTime.length + $index + 1 }}: ${{ prediction.toFixed(2) }}
+          </li>
+        }
+      </ul>
+    </div>
+  }
+</div>
