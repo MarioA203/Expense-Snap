@@ -1,0 +1,26 @@
+<nav class="navbar">
+  <div class="nav-container">
+    <div class="nav-brand">
+      <a routerLink="/" (click)="closeMenu()">Expense Tracker</a>
+    </div>
+
+    <div class="nav-menu" [class.active]="isMenuOpen">
+      <a routerLink="/" (click)="closeMenu()">Dashboard</a>
+      <a routerLink="/expenses" (click)="closeMenu()">Expenses</a>
+      <a routerLink="/budget" (click)="closeMenu()">Budget</a>
+    </div>
+
+    <div class="nav-controls">
+      <button
+        class="dark-mode-toggle"
+        (click)="toggleDarkMode()"
+        [attr.aria-label]="isDarkMode ? 'Switch to light mode' : 'Switch to dark mode'">
+        <span class="toggle-icon">{{ isDarkMode ? '☀️' : '🌙' }}</span>
+      </button>
+
+      <button class="menu-toggle" (click)="toggleMenu()" [class.active]="isMenuOpen">
+        <span class="hamburger"></span>
+      </button>
+    </div>
+  </div>
+</nav>

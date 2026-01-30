@@ -14,6 +14,8 @@ export class SummaryDashboard implements OnInit {
   recentExpenses: Expense[] = [];
   budgetStatus: { category: string; spent: number; budget: number; percentage: number }[] = [];
   categories = ['Food', 'Transportation', 'Entertainment', 'Utilities', 'Healthcare', 'Other'];
+  isLoading = false;
+  errorMessage = '';
 
   constructor(private expenseService: ExpenseService) {}
 
@@ -72,5 +74,9 @@ export class SummaryDashboard implements OnInit {
     if (percentage >= 100) return 'over-budget';
     if (percentage >= 80) return 'warning';
     return 'good';
+  }
+
+  exportExpenses(): void {
+    this.expenseService.exportToCSV();
   }
 }

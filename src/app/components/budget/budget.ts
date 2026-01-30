@@ -37,10 +37,17 @@ export class BudgetComponent implements OnInit {
 
   onSubmit() {
     if (this.budgetForm.valid) {
-      this.expenseService.setBudget(this.budgetForm.value);
-      this.loadBudgets();
-      this.budgetForm.reset();
-      alert('Budget set successfully!');
+      this.expenseService.setBudget(this.budgetForm.value).subscribe({
+        next: () => {
+          this.loadBudgets();
+          this.budgetForm.reset();
+          alert('Budget set successfully!');
+        },
+        error: (error) => {
+          console.error('Error setting budget:', error);
+          alert('Failed to set budget. Please try again.');
+        }
+      });
     }
   }
 

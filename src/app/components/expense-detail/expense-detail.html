@@ -1,0 +1,39 @@
+<div class="expense-detail-container">
+  <div *ngIf="expense; else notFound" class="expense-card">
+    <h1>Expense Details</h1>
+
+    <div class="expense-field">
+      <label>Description:</label>
+      <span>{{ expense.description }}</span>
+    </div>
+
+    <div class="expense-field">
+      <label>Amount:</label>
+      <span class="amount">${{ expense.amount.toFixed(2) }}</span>
+    </div>
+
+    <div class="expense-field">
+      <label>Category:</label>
+      <span>{{ expense.category }}</span>
+    </div>
+
+    <div class="expense-field">
+      <label>Date:</label>
+      <span>{{ expense.date | date:'mediumDate' }}</span>
+    </div>
+
+    <div class="actions">
+      <button class="btn btn-primary" (click)="editExpense()">Edit</button>
+      <button class="btn btn-danger" (click)="deleteExpense()">Delete</button>
+      <button class="btn btn-secondary" (click)="goBack()">Back</button>
+    </div>
+  </div>
+
+  <ng-template #notFound>
+    <div class="not-found">
+      <h2>Expense Not Found</h2>
+      <p>The requested expense could not be found.</p>
+      <button class="btn btn-secondary" (click)="goBack()">Back to Dashboard</button>
+    </div>
+  </ng-template>
+</div>

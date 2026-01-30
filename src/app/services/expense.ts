@@ -1,5 +1,6 @@
 import { Injectable } from '@angular/core';
-import { BehaviorSubject, Observable } from 'rxjs';
+import { HttpClient } from '@angular/common/http';
+import { BehaviorSubject, Observable, tap } from 'rxjs';
 
 export interface Expense {
   id: string;
@@ -18,35 +19,37 @@ export interface Budget {
   providedIn: 'root',
 })
 export class ExpenseService {
-  private readonly EXPENSES_KEY = 'expenses';
-  private readonly BUDGETS_KEY = 'budgets';
+  private readonly API_URL = 'http://localhost:3001/api';
 
-  private expensesSubject = new BehaviorSubject<Expense[]>(this.loadExpensesFromStorage());
-  private budgetsSubject = new BehaviorSubject<Budget[]>(this.loadBudgetsFromStorage());
+  private expensesSubject = new BehaviorSubject<Expense[]>([]);
+  private budgetsSubject = new BehaviorSubject<Budget[]>([]);
 
   public expenses$ = this.expensesSubject.asObservable();
   public budgets$ = this.budgetsSubject.asObservable();
 
-  constructor() {}
-
-  private loadExpensesFromStorage(): Expense[] {
-    const expenses = localStorage.getItem(this.EXPENSES_KEY);
-    return expenses ? JSON.parse(expenses) : [];
+  constructor(private http: HttpClient) {
+    this.loadExpenses();
+    this.loadBudgets();
   }
 
-  private loadBudgetsFromStorage(): Budget[] {
-    const budgets = localStorage.getItem(this.BUDGETS_KEY);
-    return budgets ? JSON.parse(budgets) : [];
+  private loadExpenses(): void {
+    this.http.get<Expense[]>(`${this.API_URL}/expenses`).subscribe({
+      next: expenses => this.expensesSubject.next(expenses),
+      error: error => {
+        console.error('Error loading expenses:', error);
+        this.expensesSubject.next([]);
+      }
+    });
   }
 
-  private saveExpensesToStorage(expenses: Expense[]): void {
-    localStorage.setItem(this.EXPENSES_KEY, JSON.stringify(expenses));
-    this.expensesSubject.next(expenses);
-  }
-
-  private saveBudgetsToStorage(budgets: Budget[]): void {
-    localStorage.setItem(this.BUDGETS_KEY, JSON.stringify(budgets));
-    this.budgetsSubject.next(budgets);
+  private loadBudgets(): void {
+    this.http.get<Budget[]>(`${this.API_URL}/budgets`).subscribe({
+      next: budgets => this.budgetsSubject.next(budgets),
+      error: error => {
+        console.error('Error loading budgets:', error);
+        this.budgetsSubject.next([]);
+      }
+    });
   }
 
   // Expense methods
@@ -54,28 +57,26 @@ export class ExpenseService {
     return this.expensesSubject.value;
   }
 
-  addExpense(expense: Omit<Expense, 'id'>): void {
-    const expenses = [...this.getExpenses()];
+  addExpense(expense: Omit<Expense, 'id'>): Observable<Expense> {
     const newExpense: Expense = {
       ...expense,
       id: this.generateId()
     };
-    expenses.push(newExpense);
-    this.saveExpensesToStorage(expenses);
+    return this.http.post<Expense>(`${this.API_URL}/expenses`, newExpense).pipe(
+      tap(() => this.loadExpenses())
+    );
   }
 
-  updateExpense(id: string, updatedExpense: Partial<Expense>): void {
-    const expenses = [...this.getExpenses()];
-    const index = expenses.findIndex(e => e.id === id);
-    if (index !== -1) {
-      expenses[index] = { ...expenses[index], ...updatedExpense };
-      this.saveExpensesToStorage(expenses);
-    }
+  updateExpense(id: string, updatedExpense: Partial<Expense>): Observable<Expense> {
+    return this.http.put<Expense>(`${this.API_URL}/expenses/${id}`, updatedExpense).pipe(
+      tap(() => this.loadExpenses())
+    );
   }
 
-  deleteExpense(id: string): void {
-    const expenses = this.getExpenses().filter(e => e.id !== id);
-    this.saveExpensesToStorage(expenses);
+  deleteExpense(id: string): Observable<void> {
+    return this.http.delete<void>(`${this.API_URL}/expenses/${id}`).pipe(
+      tap(() => this.loadExpenses())
+    );
   }
 
   // Budget methods
@@ -83,15 +84,10 @@ export class ExpenseService {
     return this.budgetsSubject.value;
   }
 
-  setBudget(budget: Budget): void {
-    const budgets = [...this.getBudgets()];
-    const existingIndex = budgets.findIndex(b => b.category === budget.category);
-    if (existingIndex !== -1) {
-      budgets[existingIndex] = budget;
-    } else {
-      budgets.push(budget);
-    }
-    this.saveBudgetsToStorage(budgets);
+  setBudget(budget: Budget): Observable<Budget> {
+    return this.http.post<Budget>(`${this.API_URL}/budgets`, budget).pipe(
+      tap(() => this.loadBudgets())
+    );
   }
 
   getBudgetForCategory(category: string): Budget | undefined {
@@ -146,5 +142,35 @@ export class ExpenseService {
 
   private generateId(): string {
     return Date.now().toString() + Math.random().toString(36).substr(2, 9);
+  }
+
+  exportToCSV(): void {
+    const expenses = this.getExpenses();
+    if (expenses.length === 0) {
+      alert('No expenses to export.');
+      return;
+    }
+
+    const headers = ['ID', 'Amount', 'Category', 'Date', 'Description'];
+    const csvContent = [
+      headers.join(','),
+      ...expenses.map(expense => [
+        expense.id,
+        expense.amount,
+        expense.category,
+        expense.date,
+        `"${expense.description.replace(/"/g, '""')}"` // Escape quotes
+      ].join(','))
+    ].join('\n');
+
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    const url = URL.createObjectURL(blob);
+    link.setAttribute('href', url);
+    link.setAttribute('download', `expenses_${new Date().toISOString().split('T')[0]}.csv`);
+    link.style.visibility = 'hidden';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
   }
 }

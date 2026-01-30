@@ -1,0 +1,59 @@
+<div class="dashboard-container">
+  <div class="dashboard-header">
+    <h1>Expense Dashboard</h1>
+    <button class="export-btn" (click)="exportExpenses()">Export to CSV</button>
+  </div>
+
+  <div class="stats-grid">
+    <div class="stat-card">
+      <h3>Total Expenses</h3>
+      <p class="stat-value">${{ totalExpenses.toFixed(2) }}</p>
+    </div>
+
+    <div class="stat-card">
+      <h3>This Month</h3>
+      <p class="stat-value">${{ monthlyExpenses.toFixed(2) }}</p>
+    </div>
+  </div>
+
+  <div class="dashboard-content">
+    <div class="recent-expenses">
+      <h2>Recent Expenses</h2>
+      <div class="expense-list">
+        <div *ngFor="let expense of recentExpenses" class="expense-item">
+          <div class="expense-info">
+            <span class="expense-description">{{ expense.description }}</span>
+            <span class="expense-category">{{ expense.category }}</span>
+          </div>
+          <div class="expense-amount">
+            <span class="amount">${{ expense.amount.toFixed(2) }}</span>
+            <span class="date">{{ expense.date | date:'shortDate' }}</span>
+          </div>
+        </div>
+        <div *ngIf="recentExpenses.length === 0" class="no-expenses">
+          No expenses recorded yet.
+        </div>
+      </div>
+    </div>
+
+    <div class="budget-overview">
+      <h2>Budget Overview</h2>
+      <div class="budget-list">
+        <div *ngFor="let status of budgetStatus" class="budget-item">
+          <div class="budget-info">
+            <span class="category">{{ status.category }}</span>
+            <span class="spent">${{ status.spent.toFixed(2) }} / ${{ status.budget.toFixed(2) }}</span>
+          </div>
+          <div class="progress-bar">
+            <div
+              class="progress-fill"
+              [class]="getBudgetStatusClass(status.percentage)"
+              [style.width.%]="status.percentage > 100 ? 100 : status.percentage">
+            </div>
+          </div>
+          <span class="percentage">{{ status.percentage.toFixed(1) }}%</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

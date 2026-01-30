@@ -24,11 +24,18 @@ export class ExpenseForm {
 
   onSubmit() {
     if (this.expenseForm.valid) {
-      this.expenseService.addExpense(this.expenseForm.value);
-      this.expenseForm.reset({
-        date: new Date().toISOString().split('T')[0]
+      this.expenseService.addExpense(this.expenseForm.value).subscribe({
+        next: () => {
+          this.expenseForm.reset({
+            date: new Date().toISOString().split('T')[0]
+          });
+          alert('Expense added successfully!');
+        },
+        error: (error) => {
+          console.error('Error adding expense:', error);
+          alert('Failed to add expense. Please try again.');
+        }
       });
-      alert('Expense added successfully!');
     }
   }
 }
